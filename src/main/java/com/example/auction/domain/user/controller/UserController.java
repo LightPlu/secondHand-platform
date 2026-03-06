@@ -87,6 +87,17 @@ public class UserController {
     }
 
     /**
+     * 회원 탈퇴 (인증 필요)
+     */
+    @Operation(summary = "회원 탈퇴", description = "계정을 탈퇴 처리합니다. 실제 삭제가 아닌 상태값(DELETED)으로 변경됩니다.")
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("DELETE /api/users/me - 회원 탈퇴 요청");
+        userService.withdraw(userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * 특정 사용자 정보 조회 (인증 필요)
      */
     @Operation(summary = "특정 사용자 정보 조회", description = "userId로 특정 사용자의 정보를 조회합니다.")
