@@ -122,6 +122,22 @@ public class UserService {
         // TODO: 추후 Redis 블랙리스트 방식으로 전환
     }
 
+    // 회원 탈퇴 - 소프트 딜리트 (status = DELETED)
+    // 추후 하드 딜리트(DB 데이터 삭제)로 변경 가능
+    @Transactional
+    public void withdraw(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new RuntimeException("이미 탈퇴한 계정입니다.");
+        }
+
+        user.changeStatus(UserStatus.DELETED);
+        log.info("회원 탈퇴 완료: email={}", email);
+        // TODO: 추후 탈퇴 시 관련 데이터 처리 로직 추가 (경매, 입찰 등)
+    }
+
     // 정보 수정 - 닉네임, 전화번호, 주소 변경
     @Transactional
     public UserResponse updateProfile(String email, UpdateProfileRequest request) {
