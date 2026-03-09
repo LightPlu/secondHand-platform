@@ -25,3 +25,11 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
+
+cloud:
+  r2:
+    endpoint: ${R2_ENDPOINT}
+    access-key: ${R2_ACCESS_KEY}
+    secret-key: ${R2_SECRET_KEY}
+    bucket: ${R2_BUCKET_NAME}
+    public-url: ${R2_PUBLIC_URL}
