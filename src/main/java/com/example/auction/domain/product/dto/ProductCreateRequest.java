@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,5 +36,20 @@ public class ProductCreateRequest {
     @Min(value = 0, message = "가격은 0원 이상이어야 합니다.")
     @Schema(description = "가격 (원)", example = "500000")
     private Long price;
-}
 
+    // 경매 여부 (true이면 경매 상품으로 등록)
+    @Schema(description = "경매 여부 (true이면 경매 상품으로 등록)", example = "false")
+    private Boolean isAuction;
+
+    // 경매 시작가 (isAuction = true 일 때 필수)
+    @Schema(description = "경매 시작가 (경매 상품일 때 필수)", example = "100000")
+    private Long startPrice;
+
+    // 경매 시작 시간 (isAuction = true 일 때 필수)
+    @Schema(description = "경매 시작 시간 (경매 상품일 때 필수)", example = "2026-03-10T10:00:00")
+    private LocalDateTime auctionStartTime;
+
+    // 경매 종료 시간 (isAuction = true 일 때 필수)
+    @Schema(description = "경매 종료 시간 (경매 상품일 때 필수)", example = "2026-03-17T10:00:00")
+    private LocalDateTime auctionEndTime;
+}

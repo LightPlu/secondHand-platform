@@ -8,6 +8,9 @@ import com.example.auction.domain.product.entity.ProductImage;
 import com.example.auction.domain.product.enums.ProductStatus;
 import com.example.auction.domain.product.repository.ProductImageRepository;
 import com.example.auction.domain.product.repository.ProductRepository;
+import com.example.auction.domain.auction.entity.Auction;
+import com.example.auction.domain.auction.enums.AuctionStatus;
+import com.example.auction.domain.auction.repository.AuctionRepository;
 import com.example.auction.domain.user.entity.User;
 import com.example.auction.domain.user.repository.UserRepository;
 import com.example.auction.global.exception.ProductNotFoundException;
@@ -30,14 +33,32 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
     private final R2UploadService r2UploadService;
 
-    // 상품 등록 (이미지 포함)
+    // 상품 등록 (이미지 + 경매 포함)
     @Transactional
     public ProductResponse createProduct(String email, ProductCreateRequest request, List<MultipartFile> images) {
         User seller = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 경매 상품 유효성 검사
+        if (Boolean.TRUE.equals(request.getIsAuction())) {
+            if (request.getStartPrice() == null) {
+                throw new RuntimeException("경매 시작가는 필수입니다.");
+            }
+            if (request.getAuctionStartTime() == null || request.getAuctionEndTime() == null) {
+                throw new RuntimeException("경매 시작/종료 시간은 필수입니다.");
+            }
+            if (request.getAuctionEndTime().isBefore(request.getAuctionStartTime())) {
+                throw new RuntimeException("경매 종료 시간은 시작 시간보다 이후여야 합니다.");
+            }
+        }
+
+        // 경매 여부에 따라 상품 상태 결정
+        ProductStatus productStatus = Boolean.TRUE.equals(request.getIsAuction())
+                ? ProductStatus.AUCTION : ProductStatus.SALE;
 
         Product product = Product.builder()
                 .seller(seller)
@@ -45,7 +66,7 @@ public class ProductService {
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .price(request.getPrice())
-                .status(ProductStatus.SALE)
+                .status(productStatus)
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -67,8 +88,24 @@ public class ProductService {
             }
         }
 
-        log.info("상품 등록 완료: productId={}, sellerId={}, 이미지 수={}",
-                savedProduct.getId(), seller.getId(), images != null ? images.size() : 0);
+        // 경매 등록
+        if (Boolean.TRUE.equals(request.getIsAuction())) {
+            Auction auction = Auction.builder()
+                    .product(savedProduct)
+                    .startPrice(request.getStartPrice())
+                    .currentPrice(request.getStartPrice())
+                    .startTime(request.getAuctionStartTime())
+                    .endTime(request.getAuctionEndTime())
+                    .status(AuctionStatus.READY)
+                    .build();
+            auctionRepository.save(auction);
+            log.info("경매 등록 완료: productId={}, startTime={}, endTime={}",
+                    savedProduct.getId(), request.getAuctionStartTime(), request.getAuctionEndTime());
+        }
+
+        log.info("상품 등록 완료: productId={}, sellerId={}, 이미지 수={}, 경매={}",
+                savedProduct.getId(), seller.getId(),
+                images != null ? images.size() : 0, Boolean.TRUE.equals(request.getIsAuction()));
 
         return ProductResponse.from(savedProduct);
     }
