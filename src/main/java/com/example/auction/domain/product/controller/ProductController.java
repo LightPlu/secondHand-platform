@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,9 +32,16 @@ public class ProductController {
     private final ProductService productService;
 
     /**
-     * 상품 등록 (이미지 포함)
+     * 상품 등록 (이미지 + 경매 포함)
      */
-    @Operation(summary = "상품 등록", description = "상품 정보와 이미지를 함께 등록합니다. 첫 번째 이미지가 썸네일로 지정됩니다.")
+    @Operation(
+            summary = "상품 등록",
+            description = """
+                    상품 정보와 이미지를 함께 등록합니다.
+                    - 첫 번째 이미지가 썸네일로 지정됩니다.
+                    - 경매 상품으로 등록 시 isAuction=true, startPrice, auctionStartTime, auctionEndTime 필수 입력.
+                    """
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> createProduct(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -40,13 +49,23 @@ public class ProductController {
             @RequestParam String description,
             @RequestParam String category,
             @RequestParam Long price,
+            @RequestParam(defaultValue = "false") boolean isAuction,
+            @RequestParam(required = false) Long startPrice,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime auctionStartTime,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime auctionEndTime,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        log.info("POST /api/products - 상품 등록 요청");
+        log.info("POST /api/products - 상품 등록 요청 (경매={})", isAuction);
         ProductCreateRequest request = ProductCreateRequest.builder()
                 .title(title)
                 .description(description)
                 .category(category)
                 .price(price)
+                .isAuction(isAuction)
+                .startPrice(startPrice)
+                .auctionStartTime(auctionStartTime)
+                .auctionEndTime(auctionEndTime)
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.createProduct(userDetails.getUsername(), request, images));
