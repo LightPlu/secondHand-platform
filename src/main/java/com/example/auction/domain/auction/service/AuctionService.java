@@ -4,6 +4,7 @@ import com.example.auction.domain.auction.dto.AuctionResponse;
 import com.example.auction.domain.auction.entity.Auction;
 import com.example.auction.domain.auction.enums.AuctionStatus;
 import com.example.auction.domain.auction.repository.AuctionRepository;
+import com.example.auction.domain.bid.repository.BidRepository;
 import com.example.auction.global.exception.AuctionNotFoundException;
 import com.example.auction.global.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
@@ -22,30 +23,33 @@ import java.util.stream.Collectors;
 public class AuctionService {
 
     private final AuctionRepository auctionRepository;
+    private final BidRepository bidRepository;
 
     // 경매 단건 조회
     public AuctionResponse getAuction(Long auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new AuctionNotFoundException("경매를 찾을 수 없습니다: " + auctionId));
-        return AuctionResponse.from(auction);
+        long bidCount = bidRepository.countByAuctionId(auctionId);
+        return AuctionResponse.of(auction, bidCount);
     }
 
     // 상품으로 경매 조회
     public AuctionResponse getAuctionByProductId(Long productId) {
         Auction auction = auctionRepository.findByProductId(productId)
                 .orElseThrow(() -> new AuctionNotFoundException("해당 상품의 경매를 찾을 수 없습니다."));
-        return AuctionResponse.from(auction);
+        long bidCount = bidRepository.countByAuctionId(auction.getId());
+        return AuctionResponse.of(auction, bidCount);
     }
 
     // 상태별 경매 목록 조회
     public List<AuctionResponse> getAuctionsByStatus(AuctionStatus status) {
         return auctionRepository.findByStatusOrderByCreatedAtDesc(status)
                 .stream()
-                .map(AuctionResponse::from)
+                .map(a -> AuctionResponse.of(a, bidRepository.countByAuctionId(a.getId())))
                 .collect(Collectors.toList());
     }
 
-    // 경매 취소 (판매자만 가능, READY 상태만)
+    // 경매 취소 (판매자만, READY 상태만)
     @Transactional
     public AuctionResponse cancelAuction(String email, Long auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
@@ -63,10 +67,10 @@ public class AuctionService {
         auction.getProduct().changeStatus(com.example.auction.domain.product.enums.ProductStatus.SALE);
 
         log.info("경매 취소 완료: auctionId={}", auctionId);
-        return AuctionResponse.from(auction);
+        return AuctionResponse.of(auction, 0L);
     }
 
-    // 경매 상태 동기화 (READY → RUNNING → FINISHED 자동 전환)
+    // 경매 상태 동기화 (READY → RUNNING → FINISHED)
     @Transactional
     public void syncAuctionStatus(Long auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
@@ -84,4 +88,3 @@ public class AuctionService {
         }
     }
 }
-

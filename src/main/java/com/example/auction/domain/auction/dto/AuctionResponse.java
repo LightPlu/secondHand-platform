@@ -44,6 +44,9 @@ public class AuctionResponse {
     @Schema(description = "경매 상태", example = "RUNNING")
     private AuctionStatus status;
 
+    @Schema(description = "총 입찰 수", example = "5")
+    private long bidCount;
+
     @Schema(description = "등록일시")
     private LocalDateTime createdAt;
 
@@ -58,6 +61,23 @@ public class AuctionResponse {
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
                 .status(auction.getStatus())
+                .bidCount(0)
+                .createdAt(auction.getCreatedAt())
+                .build();
+    }
+
+    public static AuctionResponse of(Auction auction, long bidCount) {
+        return AuctionResponse.builder()
+                .id(auction.getId())
+                .productId(auction.getProduct().getId())
+                .productTitle(auction.getProduct().getTitle())
+                .sellerNickname(auction.getProduct().getSeller().getNickname())
+                .startPrice(auction.getStartPrice())
+                .currentPrice(auction.getCurrentPrice())
+                .startTime(auction.getStartTime())
+                .endTime(auction.getEndTime())
+                .status(auction.getStatus())
+                .bidCount(bidCount)
                 .createdAt(auction.getCreatedAt())
                 .build();
     }
