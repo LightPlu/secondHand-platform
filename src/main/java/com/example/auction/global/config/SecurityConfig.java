@@ -65,7 +65,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
                 "https://secondhand-platform.fly.dev",
-                "https://*.fly.dev"
+                "http://secondhand-platform.fly.dev"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
