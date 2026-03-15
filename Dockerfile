@@ -1,32 +1,45 @@
 # syntax=docker/dockerfile:1
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar --server.port=${PORT}"]
+# ---------------------------
+# 1️⃣ Build Stage
+# ---------------------------
+FROM eclipse-temurin:21-jdk AS builder
 
-COPY --from=builder /app/build/libs/*.jar /app/app.jar
+WORKDIR /app
+
+# Gradle wrapper 먼저 복사 (캐시 활용)
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+
+RUN chmod +x gradlew
+
+# 의존성 다운로드
+RUN ./gradlew dependencies --no-daemon
+
+# 소스 복사
+COPY src src
+
+# jar 빌드
+RUN ./gradlew bootJar --no-daemon -x test
+
+
+# ---------------------------
+# 2️⃣ Runtime Stage
+# ---------------------------
+FROM eclipse-temurin:21-jre AS runner
+
+WORKDIR /app
+
+# jar 복사
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# non-root user 생성
+RUN addgroup --system appgroup && adduser --system appuser --ingroup appgroup
 
 USER appuser
-RUN addgroup --system appgroup && adduser --system appuser --ingroup appgroup
-# Use a non-root user
 
 EXPOSE 8080
 ENV PORT=8080
-# Fly.io 기본 포트(설정에 따라 변경 가능)
 
-WORKDIR /app
-FROM eclipse-temurin:21-jre AS runner
-# 2) Runtime stage
-
-RUN ./gradlew bootJar --no-daemon -x test
-COPY src src
-# Copy source code and build executable jar
-
-RUN chmod +x gradlew
-COPY build.gradle settings.gradle ./
-COPY gradle gradle
-COPY gradlew gradlew
-# Copy Gradle wrapper and build scripts first for better layer caching
-
-WORKDIR /app
-FROM eclipse-temurin:21-jdk AS builder
-# 1) Build stage
-
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar --server.port=${PORT}"]
