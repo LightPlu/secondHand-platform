@@ -1,0 +1,16 @@
+.git
+.gitignore
+.gradle
+build
+out
+.idea
+.vscode
+*.iml
+
+# local environment files
+.env
+.env.*
+
+# docs and OS files
+**/.DS_Store
+
