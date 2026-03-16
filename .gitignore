@@ -48,3 +48,4 @@ src/main/resources/application-prod.properties
 
 ### Env Secrets ###
 .env.local
+.env.prod
