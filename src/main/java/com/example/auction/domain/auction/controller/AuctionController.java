@@ -37,7 +37,7 @@ public class AuctionController {
         return ResponseEntity.ok(auctionService.getAuctionByProductId(productId));
     }
 
-    @Operation(summary = "상태별 경매 목록 조회", description = "READY / RUNNING / FINISHED / CANCELLED 상태별 경매 목록을 조회합니다.")
+    @Operation(summary = "상태별 경매 목록 조회", description = "READY / RUNNING / FINISHED / FAILED / CANCELLED 상태별 경매 목록을 조회합니다.")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<AuctionResponse>> getAuctionsByStatus(@PathVariable AuctionStatus status) {
         log.info("GET /api/auctions/status/{} - 상태별 경매 목록 조회", status);
@@ -60,5 +60,11 @@ public class AuctionController {
         auctionService.syncAuctionStatus(auctionId);
         return ResponseEntity.ok().build();
     }
-}
 
+    @Operation(summary = "경매 결과 조회", description = "종료된 경매(FINISHED/FAILED)의 결과를 조회합니다.")
+    @GetMapping("/{auctionId}/result")
+    public ResponseEntity<AuctionResponse> getAuctionResult(@PathVariable Long auctionId) {
+        log.info("GET /api/auctions/{}/result - 경매 결과 조회", auctionId);
+        return ResponseEntity.ok(auctionService.getAuctionResult(auctionId));
+    }
+}

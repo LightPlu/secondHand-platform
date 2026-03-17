@@ -47,6 +47,12 @@ public class AuctionResponse {
     @Schema(description = "총 입찰 수", example = "5")
     private long bidCount;
 
+    @Schema(description = "낙찰자 ID", example = "12", nullable = true)
+    private Long winnerId;
+
+    @Schema(description = "낙찰자 닉네임", example = "최고입찰자", nullable = true)
+    private String winnerNickname;
+
     @Schema(description = "등록일시")
     private LocalDateTime createdAt;
 
@@ -62,6 +68,8 @@ public class AuctionResponse {
                 .endTime(auction.getEndTime())
                 .status(auction.getStatus())
                 .bidCount(0)
+                .winnerId(auction.getWinner() != null ? auction.getWinner().getId() : null)
+                .winnerNickname(auction.getWinner() != null ? auction.getWinner().getNickname() : null)
                 .createdAt(auction.getCreatedAt())
                 .build();
     }
@@ -78,8 +86,9 @@ public class AuctionResponse {
                 .endTime(auction.getEndTime())
                 .status(auction.getStatus())
                 .bidCount(bidCount)
+                .winnerId(auction.getWinner() != null ? auction.getWinner().getId() : null)
+                .winnerNickname(auction.getWinner() != null ? auction.getWinner().getNickname() : null)
                 .createdAt(auction.getCreatedAt())
                 .build();
     }
 }
-

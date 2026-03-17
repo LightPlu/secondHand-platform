@@ -78,6 +78,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidAuctionStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAuctionStateException(InvalidAuctionStateException e) {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.CONFLICT.value(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
         ErrorResponse errorResponse = ErrorResponse.of(

@@ -2,6 +2,7 @@ package com.example.auction.domain.auction.entity;
 
 import com.example.auction.domain.auction.enums.AuctionStatus;
 import com.example.auction.domain.product.entity.Product;
+import com.example.auction.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,6 +42,10 @@ public class Auction {
     @Column(nullable = false, length = 20)
     private AuctionStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_id")
+    private User winner;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,6 +64,11 @@ public class Auction {
         this.status = status;
     }
 
+    // 낙찰자 지정
+    public void assignWinner(User winner) {
+        this.winner = winner;
+    }
+
     // 경매 시작 가능 여부
     public boolean isStartable() {
         return this.status == AuctionStatus.READY
@@ -70,4 +80,3 @@ public class Auction {
         return LocalDateTime.now().isAfter(this.endTime);
     }
 }
-
