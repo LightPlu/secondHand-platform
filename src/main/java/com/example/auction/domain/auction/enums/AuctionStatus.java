@@ -4,6 +4,7 @@ public enum AuctionStatus {
     READY("경매 대기"),
     RUNNING("경매 진행 중"),
     FINISHED("경매 종료"),
+    FAILED("유찰"),
     CANCELLED("경매 취소");
 
     private final String description;
@@ -16,4 +17,3 @@ public enum AuctionStatus {
         return description;
     }
 }
-
