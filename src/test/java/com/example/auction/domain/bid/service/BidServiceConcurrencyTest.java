@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -119,6 +121,81 @@ class BidServiceConcurrencyTest {
                 "동시성 제어가 없으면 같은 금액으로 2건 모두 성공할 수 있습니다. 현재 성공 수: " + successCount.get());
     }
 
+    @Test
+    @DisplayName("동시에 다른 금액으로 입찰을 50회 반복했을 때 최종 저장 결과를 확인한다")
+    void placeBid_diffPrice_concurrently() throws InterruptedException {
+        int rounds = 50;
+        List<Long> finalPrices = new ArrayList<>();
+        int finalHighPriceCount = 0;
+        int finalLowPriceCount = 0;
+
+        for (int round = 1; round <= rounds; round++) {
+            User seller = userRepository.save(createUser("seller" + round + "@concurrency.com", "seller" + round));
+            User bidder1 = userRepository.save(createUser("bidder1-" + round + "@concurrency.com", "bidder1_" + round));
+            User bidder2 = userRepository.save(createUser("bidder2-" + round + "@concurrency.com", "bidder2_" + round));
+
+            Product product = productRepository.save(createProduct(seller));
+            Auction auction = auctionRepository.save(createAuction(product, 10_000L));
+
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            CountDownLatch startLatch = new CountDownLatch(1);
+            CountDownLatch doneLatch = new CountDownLatch(2);
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            AtomicInteger failCount = new AtomicInteger(0);
+
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    bidService.placeBid(bidder1.getEmail(), auction.getId(), new BidRequest(11_500L));
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    bidService.placeBid(bidder2.getEmail(), auction.getId(), new BidRequest(11_000L));
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+
+            startLatch.countDown();
+            doneLatch.await();
+            executor.shutdown();
+
+            long bidCount = bidRepository.countByAuctionId(auction.getId());
+            Auction updated = auctionRepository.findById(auction.getId()).orElseThrow();
+            long finalPrice = updated.getCurrentPrice();
+
+            finalPrices.add(finalPrice);
+            if (finalPrice == 11_500L) {
+                finalHighPriceCount++;
+            } else if (finalPrice == 11_000L) {
+                finalLowPriceCount++;
+            }
+
+            System.out.printf("[ROUND %02d] success=%d fail=%d bids=%d finalPrice=%d%n",
+                    round, successCount.get(), failCount.get(), bidCount, finalPrice);
+
+            assertEquals(2, successCount.get() + failCount.get(), "각 회차는 요청 2건이 모두 처리되어야 합니다.");
+        }
+
+        System.out.println("================ SUMMARY ================");
+        System.out.println("총 반복 횟수: " + rounds);
+        System.out.println("최종가 11,500 회수: " + finalHighPriceCount);
+        System.out.println("최종가 11,000 회수: " + finalLowPriceCount);
+        System.out.println("최종가 목록: " + finalPrices);
+    }
+
     private User createUser(String email, String nickname) {
         return User.builder()
                 .email(email)
@@ -154,4 +231,3 @@ class BidServiceConcurrencyTest {
                 .build();
     }
 }
-
