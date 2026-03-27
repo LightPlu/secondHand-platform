@@ -10,6 +10,8 @@ import com.example.auction.domain.bid.repository.BidRepository;
 import com.example.auction.domain.user.entity.User;
 import com.example.auction.domain.user.repository.UserRepository;
 import com.example.auction.global.exception.AuctionNotFoundException;
+import com.example.auction.global.lock.annotation.ReentrantAuctionLock;
+import com.example.auction.global.lock.annotation.SynchronizedAuctionLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,9 +30,21 @@ public class BidService {
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
 
-    // 입찰
+    // 입찰(ReentrantLock 전략)
     @Transactional
+    @ReentrantAuctionLock(keyArgIndex = 1, keyPrefix = "bid:place", timeoutMillis = 3000)
     public BidResponse placeBid(String email, Long auctionId, BidRequest request) {
+        return doPlaceBid(email, auctionId, request);
+    }
+
+    // 입찰(synchronized 전략)
+    @Transactional
+    @SynchronizedAuctionLock(keyArgIndex = 1, keyPrefix = "bid:place")
+    public BidResponse placeBidWithSynchronizedLock(String email, Long auctionId, BidRequest request) {
+        return doPlaceBid(email, auctionId, request);
+    }
+
+    private BidResponse doPlaceBid(String email, Long auctionId, BidRequest request) {
         User bidder = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -110,4 +124,3 @@ public class BidService {
         return bidRepository.countByAuctionId(auctionId);
     }
 }
-
