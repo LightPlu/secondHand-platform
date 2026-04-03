@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/secondhand_platform}
+    username: ${TEST_DB_USERNAME:postgres}
+    password: ${TEST_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+jwt:
+  secret: test-jwt-secret-which-is-long-enough-for-tests-1234567890
+  expiration: 86400000
+
+cloud:
+  r2:
+    endpoint: http://localhost
+    access-key: test-access-key
+    secret-key: test-secret-key
+    bucket: test-bucket
+    public-url: http://localhost/test-bucket

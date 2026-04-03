@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Import(BidLockAcquisitionFailureTest.TestConfig.class)
 class BidLockAcquisitionFailureTest {
 
@@ -143,4 +145,3 @@ class BidLockAcquisitionFailureTest {
     private record BidTask(String bidderId, Long bidPrice) {
     }
 }
-
