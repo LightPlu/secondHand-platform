@@ -76,6 +76,55 @@ cp .env.example .env.local
 
 기본 포트: `8080`
 
+### Docker 실행 방법 (권장: app + postgres + redis)
+
+1) 컨테이너용 환경 파일 생성
+
+```bash
+cp docker.env.example .env.docker
+```
+
+2) `.env.docker` 값 확인/수정
+
+- `SPRING_PROFILES_ACTIVE` (주의: `SPRING_PROFILE_ACTIVE` 아님)
+- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+- `REDIS_HOST`, `REDIS_PORT`
+- `JWT_SECRET`
+- `R2_*`
+
+3) 전체 서비스 실행
+
+```bash
+docker compose up --build -d
+```
+
+4) 상태/로그 확인
+
+```bash
+docker compose ps
+docker compose logs -f app
+```
+
+5) 종료
+
+```bash
+docker compose down
+```
+
+### Docker 실행 방법 (앱만 단독)
+
+호스트의 DB/Redis를 사용하는 경우 `.env.docker`에서 아래처럼 설정하세요.
+
+- `DB_URL=jdbc:postgresql://host.docker.internal:5432/secondhand_platform`
+- `REDIS_HOST=host.docker.internal`
+
+실행:
+
+```bash
+docker build -t secondhand-platform:local .
+docker run -d --name secondhand-app --env-file .env.docker -p 8080:8080 secondhand-platform:local
+```
+
 ---
 
 ## API 문서 (Swagger)
