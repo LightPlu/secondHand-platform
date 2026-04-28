@@ -48,9 +48,9 @@ public class ProductController {
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam String category,
-            @RequestParam Long price,
+            @RequestParam Long currentPrice,
             @RequestParam(defaultValue = "false") boolean isAuction,
-            @RequestParam(required = false) Long startPrice,
+            @RequestParam(required = false) Long buyNowPrice,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime auctionStartTime,
             @RequestParam(required = false)
@@ -61,9 +61,9 @@ public class ProductController {
                 .title(title)
                 .description(description)
                 .category(category)
-                .price(price)
+                .buyNowPrice(buyNowPrice)
                 .isAuction(isAuction)
-                .startPrice(startPrice)
+                .currentPrice(buyNowPrice)
                 .auctionStartTime(auctionStartTime)
                 .auctionEndTime(auctionEndTime)
                 .build();

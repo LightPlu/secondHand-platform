@@ -34,8 +34,8 @@ public class ProductCreateRequest {
 
     @NotNull(message = "가격은 필수입니다.")
     @Min(value = 0, message = "가격은 0원 이상이어야 합니다.")
-    @Schema(description = "가격 (원)", example = "500000")
-    private Long price;
+    @Schema(description = "즉시구매가 (원)", example = "500000")
+    private Long buyNowPrice;
 
     // 경매 여부 (true이면 경매 상품으로 등록)
     @Schema(description = "경매 여부 (true이면 경매 상품으로 등록)", example = "false")
@@ -43,7 +43,7 @@ public class ProductCreateRequest {
 
     // 경매 시작가 (isAuction = true 일 때 필수)
     @Schema(description = "경매 시작가 (경매 상품일 때 필수)", example = "100000")
-    private Long startPrice;
+    private Long currentPrice;
 
     // 경매 시작 시간 (isAuction = true 일 때 필수)
     @Schema(description = "경매 시작 시간 (경매 상품일 때 필수)", example = "2026-03-10T10:00:00")

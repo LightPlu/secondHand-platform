@@ -27,7 +27,7 @@ public class Auction {
     private Product product;
 
     @Column(nullable = false)
-    private Long startPrice;
+    private Long buyNowPrice;
 
     @Column(nullable = false)
     private Long currentPrice;

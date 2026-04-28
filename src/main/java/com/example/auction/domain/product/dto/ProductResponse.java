@@ -38,8 +38,11 @@ public class ProductResponse {
     @Schema(description = "카테고리", example = "전자기기")
     private String category;
 
-    @Schema(description = "가격", example = "500000")
-    private Long price;
+    @Schema(description = "즉시구매가", example = "700000")
+    private Long buyNowPrice;
+
+    @Schema(description = "현재경매가격", example = "500000")
+    private Long currentPrice;
 
     @Schema(description = "상품 상태", example = "SALE")
     private ProductStatus status;
@@ -58,7 +61,8 @@ public class ProductResponse {
                 .title(product.getTitle())
                 .description(product.getDescription())
                 .category(product.getCategory())
-                .price(product.getPrice())
+                .buyNowPrice(product.getBuyNowPrice())
+                .currentPrice(product.getCurrentPrice())
                 .status(product.getStatus())
                 .images(product.getImages().stream()
                         .map(ProductImageResponse::from)
