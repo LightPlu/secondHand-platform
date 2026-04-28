@@ -36,7 +36,10 @@ public class Product {
     private String category;
 
     @Column(nullable = false)
-    private Long price;
+    private Long buyNowPrice;
+
+    @Column(nullable = false)
+    private Long currentPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -51,11 +54,11 @@ public class Product {
     private List<ProductImage> images = new ArrayList<>();
 
     // 비즈니스 로직
-    public void updateProduct(String title, String description, String category, Long price) {
+    public void updateProduct(String title, String description, String category, Long buyNowPrice) {
         if (title != null) this.title = title;
         if (description != null) this.description = description;
         if (category != null) this.category = category;
-        if (price != null) this.price = price;
+        if (buyNowPrice != null) this.buyNowPrice = buyNowPrice;
     }
 
     public void changeStatus(ProductStatus status) {

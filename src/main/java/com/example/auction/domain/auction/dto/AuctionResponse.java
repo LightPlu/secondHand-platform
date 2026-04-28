@@ -29,8 +29,8 @@ public class AuctionResponse {
     @Schema(description = "판매자 닉네임", example = "판매왕")
     private String sellerNickname;
 
-    @Schema(description = "경매 시작가", example = "100000")
-    private Long startPrice;
+    @Schema(description = "즉시 입찰가", example = "100000")
+    private Long buyNowPrice;
 
     @Schema(description = "현재 입찰가", example = "150000")
     private Long currentPrice;
@@ -62,7 +62,7 @@ public class AuctionResponse {
                 .productId(auction.getProduct().getId())
                 .productTitle(auction.getProduct().getTitle())
                 .sellerNickname(auction.getProduct().getSeller().getNickname())
-                .startPrice(auction.getStartPrice())
+                .buyNowPrice(auction.getBuyNowPrice())
                 .currentPrice(auction.getCurrentPrice())
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
@@ -80,7 +80,7 @@ public class AuctionResponse {
                 .productId(auction.getProduct().getId())
                 .productTitle(auction.getProduct().getTitle())
                 .sellerNickname(auction.getProduct().getSeller().getNickname())
-                .startPrice(auction.getStartPrice())
+                .buyNowPrice(auction.getBuyNowPrice())
                 .currentPrice(auction.getCurrentPrice())
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())

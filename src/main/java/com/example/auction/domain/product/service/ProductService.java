@@ -45,7 +45,7 @@ public class ProductService {
 
         // 경매 상품 유효성 검사
         if (Boolean.TRUE.equals(request.getIsAuction())) {
-            if (request.getStartPrice() == null) {
+            if (request.getCurrentPrice() == null) {
                 throw new RuntimeException("경매 시작가는 필수입니다.");
             }
             if (request.getAuctionStartTime() == null || request.getAuctionEndTime() == null) {
@@ -65,7 +65,7 @@ public class ProductService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .category(request.getCategory())
-                .price(request.getPrice())
+                .buyNowPrice(request.getBuyNowPrice())
                 .status(productStatus)
                 .build();
 
@@ -92,8 +92,8 @@ public class ProductService {
         if (Boolean.TRUE.equals(request.getIsAuction())) {
             Auction auction = Auction.builder()
                     .product(savedProduct)
-                    .startPrice(request.getStartPrice())
-                    .currentPrice(request.getStartPrice())
+                    .buyNowPrice(request.getBuyNowPrice())
+                    .currentPrice(request.getCurrentPrice())
                     .startTime(request.getAuctionStartTime())
                     .endTime(request.getAuctionEndTime())
                     .status(AuctionStatus.READY)
