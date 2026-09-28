@@ -359,7 +359,7 @@ class BidServiceConcurrencyTest {
                 .title("동시성 테스트 상품")
                 .description("테스트 설명")
                 .category("전자기기")
-                .price(10_000L)
+                .buyNowPrice(10_000L).currentPrice(10_000L)
                 .status(ProductStatus.AUCTION)
                 .build();
     }
@@ -367,7 +367,7 @@ class BidServiceConcurrencyTest {
     private Auction createAuction(Product product, Long startPrice) {
         return Auction.builder()
                 .product(product)
-                .startPrice(startPrice)
+                .buyNowPrice(startPrice)
                 .currentPrice(startPrice)
                 .startTime(LocalDateTime.now().minusMinutes(10))
                 .endTime(LocalDateTime.now().plusMinutes(30))

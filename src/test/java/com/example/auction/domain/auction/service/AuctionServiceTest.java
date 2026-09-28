@@ -52,7 +52,7 @@ class AuctionServiceTest {
 
         Auction auction = auctionRepository.save(Auction.builder()
                 .product(product)
-                .startPrice(1000L)
+                .buyNowPrice(1000L)
                 .currentPrice(1000L)
                 .startTime(LocalDateTime.now().minusHours(2))
                 .endTime(LocalDateTime.now().minusHours(1))
@@ -87,7 +87,7 @@ class AuctionServiceTest {
 
         Auction auction = auctionRepository.save(Auction.builder()
                 .product(product)
-                .startPrice(1000L)
+                .buyNowPrice(1000L)
                 .currentPrice(1000L)
                 .startTime(LocalDateTime.now().minusHours(2))
                 .endTime(LocalDateTime.now().minusHours(1))
@@ -132,7 +132,7 @@ class AuctionServiceTest {
 
         Auction auction = auctionRepository.save(Auction.builder()
                 .product(product)
-                .startPrice(1000L)
+                .buyNowPrice(1000L)
                 .currentPrice(1000L)
                 .startTime(LocalDateTime.now().minusHours(1))
                 .endTime(LocalDateTime.now().plusHours(2))
@@ -165,7 +165,7 @@ class AuctionServiceTest {
                 .title(title)
                 .description("테스트 설명")
                 .category("전자기기")
-                .price(1000L)
+                .buyNowPrice(1000L).currentPrice(1000L)
                 .status(ProductStatus.AUCTION)
                 .build();
     }

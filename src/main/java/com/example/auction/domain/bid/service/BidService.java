@@ -123,4 +123,53 @@ public class BidService {
     public long getBidCount(Long auctionId) {
         return bidRepository.countByAuctionId(auctionId);
     }
+
+    // Redis 큐에서 나온 입찰 요청 처리 (락 없이 순차 처리)
+    @Transactional
+    public BidResponse placeBidFromQueue(String email, Long auctionId, BidRequest request) {
+        User bidder = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new AuctionNotFoundException("경매를 찾을 수 없습니다: " + auctionId));
+
+        // 경매 진행 중 여부 확인
+        if (auction.getStatus() != AuctionStatus.RUNNING) {
+            throw new RuntimeException("진행 중인 경매에만 입찰할 수 있습니다. 현재 상태: " + auction.getStatus());
+        }
+
+        // 경매 종료 시간 확인
+        if (auction.isExpired()) {
+            throw new RuntimeException("종료된 경매입니다.");
+        }
+
+        // 본인 상품 입찰 불가
+        if (auction.getProduct().getSeller().getEmail().equals(email)) {
+            throw new RuntimeException("본인이 등록한 상품에는 입찰할 수 없습니다.");
+        }
+
+        // 현재 최고 입찰가보다 높아야 함
+        if (request.getBidPrice() <= auction.getCurrentPrice()) {
+            throw new RuntimeException(
+                    "입찰가는 현재 최고 입찰가(" + auction.getCurrentPrice() + "원)보다 높아야 합니다."
+            );
+        }
+
+        // 입찰 저장
+        Bid bid = Bid.builder()
+                .auction(auction)
+                .user(bidder)
+                .bidPrice(request.getBidPrice())
+                .build();
+
+        bidRepository.save(bid);
+
+        // 경매 현재가 갱신
+        auction.updateCurrentPrice(request.getBidPrice());
+
+        log.info("[QUEUE WORKER] 입찰 처리 완료: auctionId={}, userId={}, bidPrice={}",
+                auctionId, bidder.getId(), request.getBidPrice());
+
+        return BidResponse.from(bid);
+    }
 }
