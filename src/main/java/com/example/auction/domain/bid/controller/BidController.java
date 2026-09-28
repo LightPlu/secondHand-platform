@@ -1,7 +1,9 @@
 package com.example.auction.domain.bid.controller;
 
+import com.example.auction.domain.bid.dto.BidQueueMessage;
 import com.example.auction.domain.bid.dto.BidRequest;
 import com.example.auction.domain.bid.dto.BidResponse;
+import com.example.auction.domain.bid.service.BidQueueService;
 import com.example.auction.domain.bid.service.BidService;
 import com.example.auction.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -24,16 +27,29 @@ import java.util.List;
 public class BidController {
 
     private final BidService bidService;
+    private final BidQueueService bidQueueService;
 
     @Operation(summary = "입찰", description = "진행 중인 경매에 입찰합니다. 현재 최고 입찰가보다 높은 금액만 입찰 가능합니다.")
     @PostMapping("/{auctionId}/bids")
-    public ResponseEntity<BidResponse> placeBid(
+    public ResponseEntity<?> placeBid(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long auctionId,
             @Valid @RequestBody BidRequest request) {
-        log.info("POST /api/auctions/{}/bids - 입찰 요청", auctionId);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bidService.placeBid(userDetails.getUsername(), auctionId, request));
+        log.info("POST /api/auctions/{}/bids - 입찰 요청을 큐에 추가", auctionId);
+
+        BidQueueMessage message = BidQueueMessage.builder()
+                .auctionId(auctionId)
+                .bidderId(userDetails.getUsername())
+                .bidPrice(request.getBidPrice())
+                .enqueuedAt(java.time.LocalDateTime.now())
+                .build();
+
+        bidQueueService.enqueueBid(message);
+
+        return ResponseEntity.accepted().body(Map.of(
+                "message", "입찰 요청이 처리 대기열에 추가되었습니다",
+                "queueSize", bidQueueService.getQueueSize()
+        ));
     }
 
     @Operation(summary = "경매별 입찰 목록 조회", description = "해당 경매의 입찰 목록을 최고가 순으로 조회합니다.")

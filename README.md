@@ -217,3 +217,30 @@ hotfix/*            : 긴급 수정
 - 테스트 코드 확장 (서비스/통합 테스트)
 - 운영 환경 Secret Manager 연동
 
+---
+
+## 벤치마크 테스트 템플릿
+
+입찰 전략(`ReentrantLock`, `synchronized`, `Redis Queue`)의 처리 시간을 같은 조건에서 비교하는 템플릿 테스트가 추가되어 있습니다.
+
+- 테스트 클래스: `src/test/java/com/example/auction/domain/bid/service/BidStrategyBenchmarkTemplateIT.java`
+- 태그: `benchmark`
+- 기본 `test` 태스크에서는 제외되며, `benchmarkTest` 태스크로만 실행됩니다.
+
+실행 예시:
+
+```bash
+./gradlew benchmarkTest
+```
+
+옵션(시스템 프로퍼티) 예시:
+
+```bash
+./gradlew benchmarkTest \
+  -Dbenchmark.bidders=100 \
+  -Dbenchmark.warmupRounds=2 \
+  -Dbenchmark.measureRounds=5 \
+  -Dbenchmark.threadPoolSize=20
+```
+
+로그에서 `BENCHMARK_RESULT`, `BENCHMARK_SUMMARY` 라인을 기준으로 라운드별/전략별 결과를 비교하면 됩니다.

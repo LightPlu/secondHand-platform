@@ -55,9 +55,32 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'
+
+	// TestContainers for integration tests
+	testImplementation 'org.testcontainers:testcontainers:1.19.7'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+	testImplementation 'org.testcontainers:postgresql:1.19.7'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'benchmark'
+	}
 	systemProperty 'spring.profiles.active', 'test'
+}
+
+tasks.register('benchmarkTest', Test) {
+	group = 'verification'
+	description = 'Runs benchmark-tagged integration tests only.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'benchmark'
+	}
+	testLogging {
+		events 'passed', 'failed', 'skipped'
+		showStandardStreams = true
+		exceptionFormat = 'full'
+	}
+	systemProperty 'spring.profiles.active', 'benchmark'
 }
